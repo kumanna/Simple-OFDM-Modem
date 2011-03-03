@@ -12,4 +12,8 @@ channel_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_re
 
 void
 channel_equalize(OFDM &ofdm, const cvec &channel_estimate_subcarriers, const cvec &received_symbols, cvec &received_symbols_equalized);
+
+void
+introduce_frequency_offset(cvec &c, double offset);
+
 #endif

@@ -78,3 +78,11 @@ spc_timing_freq_recovery_wrap(const cvec& databuffer, int l_databuffer, int l_pr
     *pd=1;
   }
 }
+
+void
+introduce_frequency_offset(cvec &c, double offset)
+{
+  for (int i = 0; i < c.length(); ++i) {
+    c[i] = c[i] * std::exp(complex<double>(0, 1) * offset * double(i));
+  }
+}
