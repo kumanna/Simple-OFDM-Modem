@@ -1,9 +1,7 @@
-#include <itpp/itcomm.h>
+#include <iostream>
+#include "parameters.hpp"
 
-using namespace itpp;
-using namespace std;
-
-#define NBITS 1000
+#define NBITS 1024
 #define ITER 1000
 
 int
@@ -20,14 +18,15 @@ main(int argc, char *argv[])
   QAM qam(4);
 
   AWGN_Channel awgn_channel(1.0 / snr / 2.0);
+  OFDM ofdm(NFFT, NCP);
   cvec modulated_symbols, received_symbols;
 
   BERC berc;
   for (int i = 0; i < iter; ++i) {
     bits = randb(NBITS);
-    modulated_symbols = qam.modulate_bits(bits);
+    modulated_symbols = ofdm.modulate(qam.modulate_bits(bits));
     received_symbols = awgn_channel(modulated_symbols);
-    recv_bits = qam.demodulate_bits(received_symbols);
+    recv_bits = qam.demodulate_bits(ofdm.demodulate(received_symbols));
     berc.count(bits, recv_bits);
   }
   cout << snr_dB << "\t" << berc.get_errorrate() << endl;
