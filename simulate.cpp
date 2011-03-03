@@ -1,5 +1,6 @@
 #include <iostream>
 #include "parameters.hpp"
+#include "receive.hpp"
 
 #define NBITS 1024
 #define ITER 1000
@@ -7,6 +8,8 @@
 int
 main(int argc, char *argv[])
 {
+  RNG_randomize();
+
   // Get command-line parameters
   double snr_dB = (argc > 1) ? atof(argv[1]) : 3; // Get SNR from command line
   int iter = (argc > 2) ? atoi(argv[2]) : ITER;
