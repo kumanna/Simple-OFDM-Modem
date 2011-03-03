@@ -2,6 +2,29 @@
 #include "receive.hpp"
 
 void
+channel_equalize(OFDM &ofdm, const cvec &channel_estimate_subcarriers, const cvec &received_symbols, cvec &received_symbols_equalized)
+{
+  cvec received_symbols_subcarriers, received_symbols_subcarriers_n;
+  received_symbols_equalized = "";
+  for (int i = 0; i < received_symbols.length() / (NFFT + NCP); ++i) {
+    received_symbols_subcarriers = ofdm.demodulate(received_symbols.mid(i * (NFFT + NCP), NFFT + NCP));
+    received_symbols_subcarriers_n = elem_div(received_symbols_subcarriers, channel_estimate_subcarriers);
+    received_symbols_equalized = concat(received_symbols_equalized, received_symbols_subcarriers_n);
+  }
+}
+
+void
+channel_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_ref, cvec &estimate)
+{
+  cvec pilots_freq = ofdm.demodulate(pilots_time);
+  estimate = zeros_c(NFFT);
+
+  for (int i = 0; i < pilots_freq.length() / NFFT; ++i) {
+    estimate = estimate + elem_div(pilots_freq.mid(i * NFFT, NFFT), pilots_freq_ref);
+  }
+  estimate = estimate / NREP_ESTIMATION_SYMBOL;
+}
+void
 spc_timing_freq_recovery_wrap(const cvec& databuffer, int l_databuffer, int l_preambletones, int nreps_preamble, double metric_tol, int *pos, double *cfo_hat, int *pd)
 {  
   int corrlength = l_preambletones;

@@ -1,6 +1,7 @@
 #include <iostream>
 #include "parameters.hpp"
 #include "receive.hpp"
+#include "transmit.hpp"
 
 #define NBITS 1024
 #define ITER 1000
@@ -22,7 +23,11 @@ main(int argc, char *argv[])
 
   AWGN_Channel awgn_channel(1.0 / snr / 2.0);
   OFDM ofdm(NFFT, NCP);
-  cvec modulated_symbols, received_symbols, transmitted_symbols;
+  cvec modulated_symbols, received_symbols, transmitted_symbols, received_symbols_equalized;
+
+  cvec estimation_sequence_symbol_bpsk = generate_special_estimation_sequence();
+  cvec estimation_sequence_symbol = ofdm.modulate(estimation_sequence_symbol_bpsk);
+  cvec channel_estimate_subcarriers;
 
   BERC berc;
 
@@ -35,8 +40,9 @@ main(int argc, char *argv[])
     // Transmit side
     bits = randb(NBITS);
     modulated_symbols = ofdm.modulate(qam.modulate_bits(bits));
-    transmitted_symbols = concat(repmat(PREAMBLE_TONES, NREPS_PREAMBLE / 2) * PREAMBLE_GAIN, modulated_symbols);
-    packet_length = modulated_symbols.length();
+    transmitted_symbols = concat(repmat(estimation_sequence_symbol, NREP_ESTIMATION_SYMBOL), modulated_symbols);
+    packet_length = transmitted_symbols.length();
+    transmitted_symbols = concat(repmat(PREAMBLE_TONES, NREPS_PREAMBLE / 2) * PREAMBLE_GAIN, transmitted_symbols);
 
     // Channel
     transmitted_symbols = concat(zeros_c(100), transmitted_symbols, zeros_c(randi(30, 50)));
@@ -47,7 +53,10 @@ main(int argc, char *argv[])
     if (pd) {
       received_symbols.del(0, pos - 2 + NREPS_PREAMBLE * PREAMBLE_LEN);
       received_symbols = received_symbols.left(packet_length);
-      recv_bits = qam.demodulate_bits(ofdm.demodulate(received_symbols));
+      channel_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers);
+      received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
+      channel_equalize(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
+      recv_bits = qam.demodulate_bits(received_symbols_equalized);
       berc.count(bits, recv_bits);
     }
     n_successful_detects = n_successful_detects + pd;

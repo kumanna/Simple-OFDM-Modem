@@ -1,15 +1,15 @@
 all: simulate
 
-OBJS = simulate.p receive.o
+OBJS = simulate.o receive.o transmit.o
 
 CXXFLAGS += -ggdb `itpp-config --cflags`
 LDFLAGS +=  `itpp-config --libs`
 
 
-simulate: simulate.o receive.o
-simulate.o: parameters.hpp simulate.cpp
+simulate: $(OBJS)
+simulate.o: simulate.cpp parameters.hpp receive.hpp transmit.hpp
 receive.o: receive.cpp parameters.hpp receive.hpp
-
+transmit.o: transmit.cpp transmit.hpp parameters.hpp
 
 .PHONY: clean
 
