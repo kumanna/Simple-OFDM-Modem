@@ -36,16 +36,16 @@ main(int argc, char *argv[])
   double cfo_hat; // frequency offset
   int n_successful_detects = 0;
   int packet_length = 0;
+
+  cvec pilots, symbols, symbols_n;
   for (int i = 0; i < iter; ++i) {
+    symbols = "";
     // Transmit side
     bits = randb(NBITS);
-    modulated_symbols = ofdm.modulate(qam.modulate_bits(bits));
-    transmitted_symbols = concat(repmat(estimation_sequence_symbol, NREP_ESTIMATION_SYMBOL), modulated_symbols);
-    packet_length = transmitted_symbols.length();
-    transmitted_symbols = concat(repmat(PREAMBLE_TONES, NREPS_PREAMBLE / 2) * PREAMBLE_GAIN, transmitted_symbols);
+    fill_bits_into_ofdm_symbols(bits, qam, ofdm, estimation_sequence_symbol, &packet_length, modulated_symbols);
 
     // Channel
-    transmitted_symbols = concat(zeros_c(100), transmitted_symbols, zeros_c(randi(30, 50)));
+    transmitted_symbols = concat(zeros_c(100), modulated_symbols, zeros_c(10));
     received_symbols = awgn_channel(transmitted_symbols);
 
     // Receive side
@@ -55,9 +55,13 @@ main(int argc, char *argv[])
       received_symbols = received_symbols.left(packet_length);
       channel_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers);
       received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
-      channel_equalize(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
-      recv_bits = qam.demodulate_bits(received_symbols_equalized);
-      berc.count(bits, recv_bits);
+      channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
+      for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
+	extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
+	symbols = concat(symbols, symbols_n);
+      }
+      recv_bits = qam.demodulate_bits(symbols);
+      berc.count(bits, recv_bits.left(bits.length()));
     }
     n_successful_detects = n_successful_detects + pd;
   }

@@ -2,7 +2,7 @@
 #include "receive.hpp"
 
 void
-channel_equalize(OFDM &ofdm, const cvec &channel_estimate_subcarriers, const cvec &received_symbols, cvec &received_symbols_equalized)
+channel_equalize_and_demodulate(OFDM &ofdm, const cvec &channel_estimate_subcarriers, const cvec &received_symbols, cvec &received_symbols_equalized)
 {
   cvec received_symbols_subcarriers, received_symbols_subcarriers_n;
   received_symbols_equalized = "";
@@ -84,5 +84,47 @@ introduce_frequency_offset(cvec &c, double offset)
 {
   for (int i = 0; i < c.length(); ++i) {
     c[i] = c[i] * std::exp(complex<double>(0, 1) * offset * double(i));
+  }
+}
+
+void
+estimate_ofdm_symbol(cvec &ofdm_subcarriers)
+{
+  cvec pilot_val = zeros_c(64);
+  for (int i = -7; i < 7; ++i) {
+    pilot_val[(i + 64) % 64] = ofdm_subcarriers[57] * double(7 - i) / 14.0 + ofdm_subcarriers[7] * double(14 - 7 + i) / 14.0;
+  }
+  for (int i = 7; i < 21; ++i) {
+    pilot_val[i] = ofdm_subcarriers[7] * double(7 - i) / 14.0 + ofdm_subcarriers[21] * double(14 - 7 + i) / 14.0;
+  }
+  for (int i = 21; i < 43; ++i) {
+    pilot_val[i] = ofdm_subcarriers[21] * double(7 - i) / 14.0 + ofdm_subcarriers[43] * double(14 - 7 + i) / 14.0;
+  }
+  for (int i = 43; i < 57; ++i) {
+    pilot_val[i] = ofdm_subcarriers[43] * double(7 - i) / 14.0 + ofdm_subcarriers[57] * double(14 - 7 + i) / 14.0;
+  }
+  ofdm_subcarriers = elem_div(ofdm_subcarriers, pilot_val / complex<double>(1,1) * sqrt(2) + ALPHA);
+}
+
+void
+extract_ofdm_symbol(const cvec &ofdm_symbol_subcarriers, cvec &pilots, cvec &symbols, bool awgn)
+{
+  pilots = zeros_c(4);
+  int pilot_index = 0;
+  symbols = zeros_c(48);
+  int symbol_index = 0;
+  cvec ofdm_symbol_subcarriers_modified = ofdm_symbol_subcarriers;
+  //  if (!awgn) { estimate_ofdm_symbol(ofdm_symbol_subcarriers_modified); }
+  for (int i = 0; i < NFFT; ++i) {
+    switch(mask[i]) {
+    case PILOT_SUBC:
+      pilots[pilot_index++] = ofdm_symbol_subcarriers_modified[i];
+      break;
+    case DATA_SUBC:
+      symbols[symbol_index++] = ofdm_symbol_subcarriers_modified[i];
+      break;
+    default:
+      break;
+    }
   }
 }

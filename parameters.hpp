@@ -8,6 +8,7 @@ using namespace std;
 
 #define NFFT 64
 #define NCP 5
+#define SYMBOLS_PER_ODFM 48
 
 #define PREAMBLE_LEN 24
 #define NREPS_PREAMBLE 2
@@ -15,7 +16,10 @@ using namespace std;
 
 #define NREP_ESTIMATION_SYMBOL 3
 
+#define ALPHA 1e-2
+
 enum SUBCARRIER_TYPE {ZERO_SUBC, DATA_SUBC, PILOT_SUBC};
+
 const int mask[] = {ZERO_SUBC, // 0
 		    DATA_SUBC, // 1
 		    DATA_SUBC, // 2

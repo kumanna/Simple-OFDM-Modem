@@ -2,7 +2,7 @@ all: simulate
 
 OBJS = simulate.o receive.o transmit.o
 
-CXXFLAGS += -ggdb `itpp-config --cflags`
+CXXFLAGS += -ggdb `itpp-config --cflags` -O0
 LDFLAGS +=  `itpp-config --libs`
 
 
