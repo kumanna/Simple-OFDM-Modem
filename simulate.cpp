@@ -33,11 +33,12 @@ main(int argc, char *argv[])
 
   int pos; // Frame start marker
   int pd; // Detected packet: yes/no
-  double cfo_hat; // frequency offset
+  double cfo_hat, cfo_hat_initial; // frequency offset
+  int coarse_f = 0;
   int n_successful_detects = 0;
   int packet_length = 0;
 
-  cvec pilots, symbols, symbols_n;
+  cvec pilots, symbols, symbols_n, subvector;
   for (int i = 0; i < iter; ++i) {
     symbols = "";
     // Transmit side
@@ -47,15 +48,26 @@ main(int argc, char *argv[])
     // Channel
     transmitted_symbols = concat(zeros_c(100), modulated_symbols, zeros_c(10));
     received_symbols = awgn_channel(transmitted_symbols);
+    introduce_frequency_offset(received_symbols, 2 * M_PI / 64.0 * 0.02);
 
     // Receive side
     spc_timing_freq_recovery_wrap(received_symbols, received_symbols.length(), PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
+    introduce_frequency_offset(received_symbols, -cfo_hat);
+    cfo_hat_initial = cfo_hat;
     if (pd) {
       received_symbols.del(0, pos - 2 + NREPS_PREAMBLE * PREAMBLE_LEN);
       received_symbols = received_symbols.left(packet_length);
-      channel_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers);
+
+      // Frequency offset jugglery
+      coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
+      introduce_frequency_offset(received_symbols, -2 * M_PI / 64.0 * coarse_f);
+      subvector = received_symbols.mid(30, 3 * (NFFT + NCP));
+      spc_timing_freq_recovery_wrap(subvector, subvector.length(), (NFFT + NCP), 2, 0.3, &pos, &cfo_hat,  &pd);
+      introduce_frequency_offset(received_symbols, (-2 * M_PI / 64.0 * coarse_f * 64.0 / 2 / M_PI - cfo_hat));
+
       received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
       channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
+
       for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
 	extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
 	symbols = concat(symbols, symbols_n);

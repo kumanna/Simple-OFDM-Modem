@@ -13,8 +13,37 @@ channel_equalize_and_demodulate(OFDM &ofdm, const cvec &channel_estimate_subcarr
   }
 }
 
-void
-channel_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_ref, cvec &estimate)
+#define MAX_ROTATIONS 10
+
+int
+coarse_frequency_offset_estimate(const cvec &single_ofdm_symbol, const cvec &pilots_freq_ref)
+{
+  cvec rotated_pilots;
+  double metric_max = -1.0, metric;
+  double energy = 1.0;
+  int max_offset;
+
+  ivec correlation_locations = "1:63";
+
+  ivec offset_vec(pilots_freq_ref.length());
+  for (int i = -MAX_ROTATIONS; i < MAX_ROTATIONS + 1; ++i) {
+    offset_vec = correlation_locations + i;
+    for (int j = 0; j < pilots_freq_ref.length(); ++j) {
+      offset_vec[j] = (offset_vec[j] < 0) ? offset_vec[j] + NFFT : ((offset_vec[j] > NFFT) ? offset_vec[j] - NFFT : offset_vec[j]);
+    }
+    rotated_pilots = single_ofdm_symbol(offset_vec);
+    energy = sum(sqr(rotated_pilots));
+    metric = abs(sum(elem_mult(rotated_pilots, conj(pilots_freq_ref(correlation_locations))))) / energy;
+    if (metric > metric_max) {
+      max_offset = i;
+      metric_max = metric;
+    }
+  }
+  return max_offset;
+}
+
+int
+channel_coarse_frequency_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_ref, cvec &estimate)
 {
   cvec pilots_freq = ofdm.demodulate(pilots_time);
   estimate = zeros_c(NFFT);
@@ -22,8 +51,11 @@ channel_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_re
   for (int i = 0; i < pilots_freq.length() / NFFT; ++i) {
     estimate = estimate + elem_div(pilots_freq.mid(i * NFFT, NFFT), pilots_freq_ref);
   }
+
   estimate = estimate / NREP_ESTIMATION_SYMBOL;
+  return coarse_frequency_offset_estimate(pilots_freq.left(NFFT), pilots_freq_ref);
 }
+
 void
 spc_timing_freq_recovery_wrap(const cvec& databuffer, int l_databuffer, int l_preambletones, int nreps_preamble, double metric_tol, int *pos, double *cfo_hat, int *pd)
 {  
@@ -66,7 +98,8 @@ spc_timing_freq_recovery_wrap(const cvec& databuffer, int l_databuffer, int l_pr
     }
   }
   // printf(" The sync point is %d \n", sync_point);
-  double phase = imag(log(cross_corr[sync_point]));
+  //  double phase = imag(log(cross_corr[sync_point]));
+  double phase = arg(cross_corr[sync_point]);
   float absmetric =abs(metric[sync_point]);
 
   if ((absmetric <= (1 + metric_tol)) && (absmetric >= (1 - metric_tol))
@@ -74,7 +107,7 @@ spc_timing_freq_recovery_wrap(const cvec& databuffer, int l_databuffer, int l_pr
 
     *pos = sync_point + 1;
     phase = phase > 0 ? fmod(phase, M_PI) : fmod(phase, -M_PI);
-    *cfo_hat = phase / corrlength; 
+    *cfo_hat = phase / corrlength;
     *pd=1;
   }
 }

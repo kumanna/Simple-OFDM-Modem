@@ -18,4 +18,8 @@ introduce_frequency_offset(cvec &c, double offset);
 
 void
 extract_ofdm_symbol(const cvec &ofdm_symbol_subcarriers, cvec &pilots, cvec &symbols, bool awgn = false);
+
+int
+channel_coarse_frequency_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_ref, cvec &estimate);
+
 #endif
