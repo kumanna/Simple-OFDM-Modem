@@ -111,7 +111,7 @@ extract_ofdm_symbol(const cvec &ofdm_symbol_subcarriers, cvec &pilots, cvec &sym
 {
   pilots = zeros_c(4);
   int pilot_index = 0;
-  symbols = zeros_c(48);
+  symbols = zeros_c(SYMBOLS_PER_ODFM);
   int symbol_index = 0;
   cvec ofdm_symbol_subcarriers_modified = ofdm_symbol_subcarriers;
   //  if (!awgn) { estimate_ofdm_symbol(ofdm_symbol_subcarriers_modified); }
