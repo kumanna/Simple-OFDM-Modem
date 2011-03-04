@@ -13,6 +13,7 @@ void
 create_ofdm_symbol(const bvec &bits, const int *symbol_mask, QAM &qam, OFDM &ofdm, cvec &ofdm_symbol)
 {
   int symbol_index = 0;
+  int pilot_index = 0;
   cvec ofdm_symbol_subcarriers = zeros_c(ofdm.no_carriers());
   cvec symbols = qam.modulate_bits(bits);
   for (int i = 0; i < ofdm.no_carriers(); ++i) {
@@ -22,7 +23,7 @@ create_ofdm_symbol(const bvec &bits, const int *symbol_mask, QAM &qam, OFDM &ofd
       break;
     case PILOT_SUBC:
       // This is subject to change, since identical pilots might be a problem
-      ofdm_symbol_subcarriers[i] = complex<double>(1,1) / sqrt(2);
+      ofdm_symbol_subcarriers[i] = PILOT_VALUES[pilot_index++];
       break;
     case DATA_SUBC:
       ofdm_symbol_subcarriers[i] = symbols[symbol_index++];

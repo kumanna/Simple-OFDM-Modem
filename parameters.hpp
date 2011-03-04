@@ -85,6 +85,9 @@ const int mask[] = {ZERO_SUBC, // 0
 		    DATA_SUBC, // 62 == -2
 		    DATA_SUBC}; // 63 == -1
 
+const cvec PILOT_VALUES = "1+1i 1-1i -1-1i 1+1i";
+const ivec PILOT_LOCATIONS =  "7 21 43 57";
+
 const cvec PREAMBLE_TONES=cvec("0.408248+0.588625i,"
 			       "-0.537658-0.288675i,"
 			       "0.632392+0.523747i,"
