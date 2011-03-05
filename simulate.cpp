@@ -34,6 +34,8 @@ main(int argc, char *argv[])
   cvec channel_estimate_subcarriers;
 
   BERC berc;
+  BLERC blerc;
+  bool blocksize_set = false;
 
   // Transmit side
   LDPC_Generator_Systematic G; // for codes created with ldpc_gen_codes since generator exists
@@ -62,6 +64,10 @@ main(int argc, char *argv[])
     }
     else if (use_ldpc) {
       bits = zeros_b(C.get_nvar() - C.get_ncheck());
+    }
+    if (!blocksize_set) {
+      blerc.set_blocksize(bits.size());
+      blocksize_set = true;
     }
 
     fill_bits_into_ofdm_symbols(encoded_bits, qam, ofdm, estimation_sequence_symbol, &packet_length, modulated_symbols);
@@ -111,9 +117,10 @@ main(int argc, char *argv[])
 	recv_bits = llr < 0;
       }
       berc.count(bits, recv_bits.left(bits.length()));
+      blerc.count(bits, recv_bits.left(bits.length()));
     }
     n_successful_detects = n_successful_detects + pd;
   }
-  cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << n_successful_detects << "\t" << iter << endl;
+  cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << blerc.get_errorrate() << "\t" << n_successful_detects << "\t" << iter << endl;
   return 0;
 }
