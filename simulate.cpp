@@ -80,7 +80,7 @@ main(int argc, char *argv[])
       received_symbols = received_symbols.left(packet_length);
 
       // Giannakis frequency offset estimation
-      cfo_hat_giannakis = estimate_frequency_offset(received_symbols.mid(16, 144), 4096);
+      cfo_hat_giannakis = estimate_frequency_offset(received_symbols.mid(16, 144), 1024);
 #if FREQ_OFFSET_ON == true
       introduce_frequency_offset(received_symbols, - 2 * M_PI * cfo_hat_giannakis);
 #endif

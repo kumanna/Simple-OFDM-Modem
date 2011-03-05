@@ -168,13 +168,15 @@ extract_ofdm_symbol(const cvec &ofdm_symbol_subcarriers, cvec &pilots, cvec &sym
 double
 estimate_frequency_offset(const cvec &c, int n_fft)
 {
-  cvec ys;
-  ivec subvecs = "0:16:128";
   vec fft_vals = zeros(n_fft);
   int index;
   double v = 0;
+  cvec ys = zeros_c(Ns);
   for (int n = 0; n < Ns; ++n) {
-    fft_vals = fft_vals + sqr(fft(c(subvecs + n), n_fft));
+    for (int j = 0; j < 9; ++j) {
+      ys[j] = c(j * 16 + n);
+    }
+    fft_vals = fft_vals + sqr(fft(ys, n_fft));
   }
   max(fft_vals, index);
   index = (index > n_fft / 2) ? index - n_fft : index;
