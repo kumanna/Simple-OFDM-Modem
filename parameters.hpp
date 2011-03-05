@@ -141,4 +141,6 @@ const bvec special_estimation_seq = "0 1 0 0 1 0 1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1
 const bvec short_ofdm_symbol_data = "1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 0 0 1 0 1 0 1 0";
 const int short_mask[] = {ZERO_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, ZERO_SUBC, ZERO_SUBC, ZERO_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC};
 
+#define FOURTH_POWER_WINDOW 48
+
 #endif

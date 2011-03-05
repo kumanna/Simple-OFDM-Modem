@@ -70,7 +70,7 @@ main(int argc, char *argv[])
     transmitted_symbols = concat(zeros_c(100), modulated_symbols, zeros_c(10));
     received_symbols = awgn_channel(transmitted_symbols);
 #if FREQ_OFFSET_ON == true
-    introduce_frequency_offset(received_symbols, 0.01);
+    introduce_frequency_offset(received_symbols, 0.02);
 #endif
 
     // Receive side
@@ -96,8 +96,12 @@ main(int argc, char *argv[])
 
       for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
        extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
-	   symbols = concat(symbols, symbols_n);
+       symbols = concat(symbols, symbols_n);
       }
+      // cout << "x = " << symbols << ";" << endl;
+      symbols = fourth_power_derotate(symbols);
+      // cout << "y = " << symbols << ";" << endl;
+      // exit(1);
       if (!use_ldpc) {
 	recv_bits = qam.demodulate_bits(symbols);
       }

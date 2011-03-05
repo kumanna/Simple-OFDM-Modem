@@ -25,4 +25,6 @@ channel_coarse_frequency_estimate(OFDM &ofdm, const cvec &pilots_time, const cve
 double
 estimate_frequency_offset(const cvec &c, int n_fft);
 
+cvec
+fourth_power_derotate(const cvec &);
 #endif

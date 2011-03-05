@@ -1,5 +1,6 @@
 #include "parameters.hpp"
 #include "receive.hpp"
+#include "unwrap.hpp"
 
 void
 channel_equalize_and_demodulate(OFDM &ofdm, const cvec &channel_estimate_subcarriers, const cvec &received_symbols, cvec &received_symbols_equalized)
@@ -179,4 +180,24 @@ estimate_frequency_offset(const cvec &c, int n_fft)
   index = (index > n_fft / 2) ? index - n_fft : index;
   v = double(index) / 16.0 / double(n_fft);
   return v;
+}
+
+cvec
+fourth_power_derotate(const cvec &symbols)
+{
+  cvec fixed_vector = "";
+  cvec subvector;
+  cvec fourth_pow;
+  vec angles;
+  double average_phi;
+  for (int i = 0; i < symbols.length() / FOURTH_POWER_WINDOW; ++i) {
+    subvector = symbols.mid(FOURTH_POWER_WINDOW * i, FOURTH_POWER_WINDOW);
+    fourth_pow = elem_mult(subvector, subvector);
+    fourth_pow = -elem_mult(fourth_pow, fourth_pow);
+    angles = arg(fourth_pow);
+    //    unwrap(arg(fourth_pow), angles);
+    average_phi = sum(angles) / FOURTH_POWER_WINDOW / 4.0;
+    fixed_vector = concat(fixed_vector, subvector * exp(complex<double>(0,-1.0) * average_phi));
+  }
+  return fixed_vector;
 }
