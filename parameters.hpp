@@ -138,5 +138,7 @@ const cvec PREAMBLE_TONES=cvec("0.408248+0.588625i,"
 			       "-0.184104-0.523747i");
 
 const bvec special_estimation_seq = "0 1 0 0 1 0 1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 0 0 1 0 1 0 1 1 0 1 0 0 0 1 0 0 0 1 0 1 0 1 1 1 0 1 0 0 1 1 0 0 0 0 1 0 0 1 1 1 0 0";
+const bvec short_ofdm_symbol_data = "1 0 1 0 0 0 0 0 1 0 0 1 1 0 1 1 0 0 1 0 1 0 1 0";
+const int short_mask[] = {ZERO_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, ZERO_SUBC, ZERO_SUBC, ZERO_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC};
 
 #endif

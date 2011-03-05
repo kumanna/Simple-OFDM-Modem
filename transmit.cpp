@@ -43,15 +43,16 @@ int
 fill_bits_into_ofdm_symbols(const bvec &bits, QAM &qam, OFDM &ofdm, cvec &special_estimation_seq, int *packet_length, cvec &ofdm_syms)
 {
   ofdm_syms = "";
+  cvec freq_offset_symbols = "";
   int bits_per_ofdm_symbol = qam.bits_per_symbol() * SYMBOLS_PER_ODFM;
 
   // Add some symbols for frequency offset compensation
   // Giannakis symbols
 
-  // OFDM ofdm_small(16,0);
-  // cvec short_symbol;
-  // create_ofdm_symbol(short_ofdm_symbol_data, short_mask, qam, ofdm_small, short_symbol);
-  // ofdm_syms = concat(repmat(short_symbol, 10), ofdm_syms);
+  OFDM ofdm_small(16,0);
+  cvec short_symbol;
+  create_ofdm_symbol(short_ofdm_symbol_data, short_mask, qam, ofdm_small, short_symbol);
+  freq_offset_symbols = concat(repmat(short_symbol, 10), freq_offset_symbols);
 
   bvec actual_bits = bits; // The actual padded bit sequence
 
@@ -68,6 +69,9 @@ fill_bits_into_ofdm_symbols(const bvec &bits, QAM &qam, OFDM &ofdm, cvec &specia
 
   // Prepend a special symbol to aid estimation
   ofdm_syms = concat(repmat(special_estimation_seq, NREP_ESTIMATION_SYMBOL), ofdm_syms);
+
+  // Prepend frequency offset symbols
+  ofdm_syms = concat(freq_offset_symbols, ofdm_syms);
 
   *packet_length = ofdm_syms.length();
 

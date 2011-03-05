@@ -22,4 +22,7 @@ extract_ofdm_symbol(const cvec &ofdm_symbol_subcarriers, cvec &pilots, cvec &sym
 int
 channel_coarse_frequency_estimate(OFDM &ofdm, const cvec &pilots_time, const cvec &pilots_freq_ref, cvec &estimate);
 
+double
+estimate_frequency_offset(const cvec &c, int n_fft);
+
 #endif
