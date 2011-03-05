@@ -5,7 +5,7 @@
 
 #define NBITS 1024
 #define ITER 1000
-#define FREQ_OFFSET_ON false
+#define FREQ_OFFSET_ON true
 
 int
 main(int argc, char *argv[])
@@ -70,36 +70,32 @@ main(int argc, char *argv[])
     transmitted_symbols = concat(zeros_c(100), modulated_symbols, zeros_c(10));
     received_symbols = awgn_channel(transmitted_symbols);
 #if FREQ_OFFSET_ON == true
-    introduce_frequency_offset(received_symbols, 2 * M_PI / 64.0 * 0.02);
+    introduce_frequency_offset(received_symbols, 0.01);
 #endif
 
     // Receive side
     spc_timing_freq_recovery_wrap(received_symbols, received_symbols.length(), PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
-#if FREQ_OFFSET_ON == true
-    introduce_frequency_offset(received_symbols, -cfo_hat);
-#endif
-
-    cfo_hat_initial = cfo_hat;
-    if (pd) {
+    if (pd) { // If packet detected
       received_symbols.del(0, pos - 2 + NREPS_PREAMBLE * PREAMBLE_LEN);
       received_symbols = received_symbols.left(packet_length);
 
       // Frequency offset jugglery
+      subvector = received_symbols.mid(30, 3 * (NFFT + NCP));
+      spc_timing_freq_recovery_wrap(subvector, subvector.length(), (NFFT + NCP), 2, 0.1, &pos, &cfo_hat,  &pd);
+#if FREQ_OFFSET_ON == true
+      introduce_frequency_offset(received_symbols, - cfo_hat);
+#endif
       coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
 #if FREQ_OFFSET_ON == true
-      introduce_frequency_offset(received_symbols, -2 * M_PI / 64.0 * coarse_f);
+      introduce_frequency_offset(received_symbols,-2*M_PI* coarse_f/(NFFT+NCP));
 #endif
-      subvector = received_symbols.mid(30, 3 * (NFFT + NCP));
-      spc_timing_freq_recovery_wrap(subvector, subvector.length(), (NFFT + NCP), 2, 0.3, &pos, &cfo_hat,  &pd);
-#if FREQ_OFFSET_ON == true
-      introduce_frequency_offset(received_symbols, (-2 * M_PI / 64.0 * coarse_f * 64.0 / 2 / M_PI - cfo_hat));
-#endif
+      cout<< "total_estimate"<<"\t"<<2*M_PI* coarse_f/(NFFT+NCP)+ cfo_hat<<endl;
       received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
       channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
 
       for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
-	extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
-	symbols = concat(symbols, symbols_n);
+       extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
+	   symbols = concat(symbols, symbols_n);
       }
       if (!use_ldpc) {
 	recv_bits = qam.demodulate_bits(symbols);
