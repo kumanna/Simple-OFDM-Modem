@@ -2,3 +2,4 @@ simulate
 *.o
 *.it
 generate_frame
+*.dat
