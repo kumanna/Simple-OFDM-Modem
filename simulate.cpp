@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 #if FREQ_OFFSET_ON == true
       introduce_frequency_offset(received_symbols, - 2 * M_PI * cfo_hat_giannakis);
 #endif
-      received_symbols.del(0, 159);
+      received_symbols.del(0, 159+16);
 
       // Frequency offset jugglery
       coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));

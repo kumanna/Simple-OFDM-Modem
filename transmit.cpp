@@ -52,7 +52,7 @@ fill_bits_into_ofdm_symbols(const bvec &bits, QAM &qam, OFDM &ofdm, cvec &specia
   OFDM ofdm_small(16,0);
   cvec short_symbol;
   create_ofdm_symbol(short_ofdm_symbol_data, short_mask, qam, ofdm_small, short_symbol);
-  freq_offset_symbols = concat(repmat(short_symbol, 10), freq_offset_symbols);
+  freq_offset_symbols = concat(repmat(short_symbol, 11), freq_offset_symbols);
 
   bvec actual_bits = bits; // The actual padded bit sequence
 
