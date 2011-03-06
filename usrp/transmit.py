@@ -4,9 +4,9 @@ test
 
 """
 
-INTERP = 32
-TXGAIN = 20
-CONSTANT = 10.0
+INTERP = 128
+TXGAIN = 30
+CONSTANT = 0.10
 
 from gnuradio import gr, gr_unittest
 import usrp_options
@@ -20,7 +20,7 @@ def main():
     src = gr.file_source(gr.sizeof_gr_complex, "transmit-data.dat", True)
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     (options, args) = parser.parse_args ()
-    d = {'verbose': True, 'discontinuous': False, 'samples_per_symbol': 2, 'usrpx': None, 'interp': INTERP, 'fusb_block_size': 0, 'megabytes': 1.0, 'rx_freq': 2.44e9, 'size': 1500, 'show_tx_gain_range': False, 'log': False, 'tx_subdev_spec': None, 'fusb_nblocks': 0, 'lo_offset': None, 'tx_gain': TXGAIN, 'which': 0, 'modulation': 'gmsk', 'excess_bw': 0.34999999999999998, 'bt': 0.34999999999999998, 'interface': 'eth0', 'freq': None, 'bitrate': 100000.0, 'from_file': None, 'tx_freq': 2412000000.0, 'mac_addr': '', 'tx_amplitude': 0.1, 'gray_code': True}
+    d = {'verbose': True, 'discontinuous': False, 'samples_per_symbol': 2, 'usrpx': None, 'interp': INTERP, 'fusb_block_size': 0, 'megabytes': 1.0, 'rx_freq': 2.44e9, 'size': 1500, 'show_tx_gain_range': False, 'log': False, 'tx_subdev_spec': None, 'fusb_nblocks': 0, 'lo_offset': None, 'tx_gain': TXGAIN, 'which': 0, 'modulation': 'gmsk', 'excess_bw': 0.34999999999999998, 'bt': 0.34999999999999998, 'interface': 'eth0', 'freq': None, 'bitrate': 100000.0, 'from_file': None, 'tx_freq': 2440000000.0, 'mac_addr': '', 'tx_amplitude': 0.1, 'gray_code': True}
     for i, j in d.items():
         setattr(options, i, j)
 
