@@ -3,7 +3,6 @@
 #include "receive.hpp"
 #include "transmit.hpp"
 
-#define NBITS 1024
 #define ITER 1
 
 int
@@ -49,6 +48,10 @@ main(int argc, char *argv[])
   it_file ff;
   ff.open("transmit-data.it");
   ff << Name("data") <<   repmat(modulated_symbols, iter);
+  ff.flush();
+  ff.close();
+  ff.open("bits.it");
+  ff << Name("bits") <<   repmat(bits, iter);
   ff.flush();
   ff.close();
 

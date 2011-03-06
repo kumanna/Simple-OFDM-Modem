@@ -143,4 +143,6 @@ const int short_mask[] = {ZERO_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC, DATA_SUBC,
 
 #define FOURTH_POWER_WINDOW 48
 
+#define NBITS 1024
+
 #endif

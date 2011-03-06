@@ -3,3 +3,4 @@ simulate
 *.it
 generate_frame
 *.dat
+read_frame
