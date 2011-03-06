@@ -45,6 +45,7 @@ main(int argc, char *argv[])
   }
   fill_bits_into_ofdm_symbols(encoded_bits, qam, ofdm, estimation_sequence_symbol, &packet_length, modulated_symbols);
   
+  modulated_symbols = concat(modulated_symbols, zeros_c(200));
   it_file ff;
   ff.open("transmit-data.it");
   ff << Name("data") <<   repmat(modulated_symbols, iter);

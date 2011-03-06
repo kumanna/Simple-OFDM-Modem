@@ -6,7 +6,7 @@ test
 
 import math
 from gnuradio import gr, gr_unittest
-import ofdm, usrp_options
+import usrp_options
 from optparse import OptionParser
 from gnuradio.eng_option import eng_option
 from pick_bitrate import pick_rx_bitrate, pick_tx_bitrate
@@ -15,7 +15,7 @@ def main():
     gr.enable_realtime_scheduling()
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     (options, args) = parser.parse_args ()
-    d = {'verbose': True, 'samples_per_symbol': 2, 'usrpx': None, 'excess_bw': 0.34999999999999998, 'fusb_block_size': 0, 'log': False, 'costas_alpha': 0.14999999999999999, 'bitrate': 100000.0, 'decim': None, 'omega_relative_limit': 0.0050000000000000001, 'fusb_nblocks': 0, 'which': 1, 'rx_subdev_spec': None, 'freq_error': 0.0, 'lo_offset': None, 'modulation': 'gmsk', 'gain_mu': None, 'interface': 'eth0', 'freq': None, 'rx_freq': 2.44e9, 'rx_gain': 3.0, 'tx_freq': 2440000000.0, 'mu': 0.5, 'mac_addr': '', 'show_rx_gain_range': False, 'gray_code': True, 'tx_subdev_spec' : None, 'tx_gain' : None, 'show_tx_gain_range': False, 'interp'  : 512}
+    d = {'verbose': True, 'samples_per_symbol': 2, 'usrpx': None, 'excess_bw': 0.34999999999999998, 'fusb_block_size': 0, 'log': False, 'costas_alpha': 0.14999999999999999, 'bitrate': 100000.0, 'decim': None, 'omega_relative_limit': 0.0050000000000000001, 'fusb_nblocks': 0, 'which': 0, 'rx_subdev_spec': None, 'freq_error': 0.0, 'lo_offset': None, 'modulation': 'gmsk', 'gain_mu': None, 'interface': 'eth0', 'freq': None, 'rx_freq': 2.44e9, 'rx_gain': 3.0, 'tx_freq': 2440000000.0, 'mu': 0.5, 'mac_addr': '', 'show_rx_gain_range': False, 'gray_code': True, 'tx_subdev_spec' : None, 'tx_gain' : None, 'show_tx_gain_range': False, 'interp'  : 512}
     for i, j in d.items():
         setattr(options, i, j)
 
@@ -35,7 +35,6 @@ def main():
         raise ValueError, eng_notation.num_to_str(options.rx_freq)
 
     tb = gr.top_block()
-    sync = ofdm.synpacket_fc ()
     dst = gr.vector_sink_s ()
     dump = gr.file_sink(gr.sizeof_gr_complex, 'packet.dat')
     tb.connect(u, dump)
