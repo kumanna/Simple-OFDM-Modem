@@ -4,3 +4,4 @@ simulate
 generate_frame
 *.dat
 read_frame
+*.pyc

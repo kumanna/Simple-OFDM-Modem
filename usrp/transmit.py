@@ -5,7 +5,7 @@ test
 """
 
 from gnuradio import gr, gr_unittest
-import ofdm, usrp_options
+import usrp_options
 from optparse import OptionParser
 from gnuradio.eng_option import eng_option
 from pick_bitrate import pick_tx_bitrate
@@ -13,8 +13,7 @@ from pick_bitrate import pick_tx_bitrate
 def main():
     gr.enable_realtime_scheduling()
     tb = gr.top_block ()
-    src = gr.file_source(gr.sizeof_gr_complex, "/home/kumar/Work/Timing_experiment/ofdm_data.dat", True)
-    transmit = ofdm.genpacket_fc ()
+    src = gr.file_source(gr.sizeof_gr_complex, "transmit-data.dat", True)
     parser = OptionParser(option_class=eng_option, conflict_handler="resolve")
     (options, args) = parser.parse_args ()
     d = {'verbose': True, 'discontinuous': False, 'samples_per_symbol': 2, 'usrpx': None, 'interp': None, 'fusb_block_size': 0, 'megabytes': 1.0, 'rx_freq': 2.44e9, 'size': 1500, 'show_tx_gain_range': False, 'log': False, 'tx_subdev_spec': None, 'fusb_nblocks': 0, 'lo_offset': None, 'tx_gain': None, 'which': 0, 'modulation': 'gmsk', 'excess_bw': 0.34999999999999998, 'bt': 0.34999999999999998, 'interface': 'eth0', 'freq': None, 'bitrate': 100000.0, 'from_file': None, 'tx_freq': 2440000000.0, 'mac_addr': '', 'tx_amplitude': 0.1, 'gray_code': True}
