@@ -9,7 +9,9 @@ LDFLAGS +=  `itpp-config --libs`
 simulate: $(OBJS)
 	g++ -o simulate $(OBJS) $(LDFLAGS)
 generate_frame: generate_frame.o transmit.o
+	g++ -o generate_frame generate_frame.o transmit.o $(LDFLAGS)
 read_frame: read_frame.o transmit.o receive.o
+	g++ -o read_frame read_frame.o transmit.o receive.o $(LDFLAGS)
 generate_frame.o: generate_frame.cpp parameters.hpp receive.hpp transmit.hpp
 read_frame.o: read_frame.cpp parameters.hpp receive.hpp transmit.hpp
 receive.o: receive.cpp parameters.hpp receive.hpp unwrap.hpp
