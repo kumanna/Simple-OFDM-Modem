@@ -14,7 +14,7 @@ channel_equalize_and_demodulate(OFDM &ofdm, const cvec &channel_estimate_subcarr
   }
 }
 
-#define MAX_ROTATIONS 10
+#define MAX_ROTATIONS 6
 
 int
 coarse_frequency_offset_estimate(const cvec &single_ofdm_symbol, const cvec &pilots_freq_ref)
@@ -34,7 +34,7 @@ coarse_frequency_offset_estimate(const cvec &single_ofdm_symbol, const cvec &pil
     }
     rotated_pilots = single_ofdm_symbol(offset_vec);
     energy = sum(sqr(rotated_pilots));
-    metric = abs(sum(elem_mult(rotated_pilots, conj(pilots_freq_ref(correlation_locations))))) / energy;
+    metric = abs(sum(elem_mult(rotated_pilots, conj(pilots_freq_ref(correlation_locations))))) / sqrt(energy);
     if (metric > metric_max) {
       max_offset = i;
       metric_max = metric;
