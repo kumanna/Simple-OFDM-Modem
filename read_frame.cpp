@@ -44,7 +44,7 @@ main(int argc, char *argv[])
   double cfo_hat, cfo_hat_giannakis; // frequency offset
   int coarse_f = 0;
   int n_successful_detects = 0;
-  int packet_length = (ceil(double(NBITS) / double(SYMBOLS_PER_ODFM) / 2.0) + 3) * 69 + 48 + 160;
+  int packet_length = (ceil(double(NBITS) / double(SYMBOLS_PER_ODFM) / 2.0) + 3) * 69 + 48 + 160+16;
 
   cvec pilots, symbols, symbols_n, subvector;
   vec softbits;
