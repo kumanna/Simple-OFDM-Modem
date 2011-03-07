@@ -113,12 +113,15 @@ main(int argc, char *argv[])
 	  recv_bits = concat(recv_bits, (llr < 0).left(ldpc_k));
 	}
       }
-      berc.count(bits, recv_bits.left(bits.length()));
       berc_individual.clear();
       berc_individual.count(bits, recv_bits.left(bits.length()));
-      // blerc.count(bits, recv_bits.left(bits.length()));
-      n_successful_detects++;
-      cout << snr_dB << "\t" << berc_individual.get_errorrate() << "\t" << n_successful_detects << endl;
+      if (berc_individual.get_errorrate() < 0.4) {
+	// Throw away really bad packets
+	berc.count(bits, recv_bits.left(bits.length()));
+	n_successful_detects++;
+	cout << snr_dB << "\t" << berc_individual.get_errorrate() << "\t" << n_successful_detects << endl;
+
+      }
     }
     else {
       received_symbols_full.del(0, 1);
