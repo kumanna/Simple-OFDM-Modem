@@ -12,7 +12,7 @@ main(int argc, char *argv[])
 
   // Get command-line parameters
   double snr_dB = (argc > 1) ? atof(argv[1]) : 3; // Get SNR from command line
-  int bonus = (argc > 1) ? atof(argv[1]) : 0;
+  int bonus = (argc > 2) ? atoi(argv[2]) : 0;
   bool use_ldpc = (argc > 3) ? (argv[3][0] == '1') : false;
   const char *ldpc_code = (argc > 4) ? argv[4] : "mackay_204.33.484_opt.it";
   bool irregular = ldpc_code[0] == 'R';
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
       received_symbols.del(0, 159+16);
 
       // Apply bonus (only new thing in the whole experiment)
-      apply_bonus(received_symbols, 30);
+      apply_bonus(received_symbols, bonus);
 
       // Frequency offset jugglery
       coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
