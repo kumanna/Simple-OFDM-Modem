@@ -7,7 +7,7 @@ using namespace itpp;
 using namespace std;
 
 #define NFFT 64
-#define NCP 5
+#define NCP 63
 #define SYMBOLS_PER_ODFM 48
 
 #define PREAMBLE_LEN 24

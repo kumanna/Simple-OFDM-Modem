@@ -12,8 +12,9 @@ main(int argc, char *argv[])
 
   // Get command-line parameters
   double snr_dB = (argc > 1) ? atof(argv[1]) : 3; // Get SNR from command line
-  bool use_ldpc = (argc > 2) ? (argv[2][0] == '1') : false;
-  const char *ldpc_code = (argc > 3) ? argv[3] : "mackay_204.33.484_opt.it";
+  int bonus = (argc > 1) ? atof(argv[1]) : 0;
+  bool use_ldpc = (argc > 3) ? (argv[3][0] == '1') : false;
+  const char *ldpc_code = (argc > 4) ? argv[4] : "mackay_204.33.484_opt.it";
   bool irregular = ldpc_code[0] == 'R';
   double snr = inv_dB(snr_dB);
 
