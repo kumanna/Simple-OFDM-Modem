@@ -44,7 +44,7 @@ main(int argc, char *argv[])
   double cfo_hat, cfo_hat_giannakis; // frequency offset
   int coarse_f = 0;
   int n_successful_detects = 0;
-  int packet_length = (ceil(double(NBITS) / double(SYMBOLS_PER_ODFM) / 2.0) + 3) * 69 + 48 + 160+16;
+  int packet_length = (ceil(double(NBITS) / double(SYMBOLS_PER_ODFM) / 2.0) + 3) * (NFFT + NCP) + 48 + 160+16;
 
   cvec pilots, symbols, symbols_n, subvector;
   vec softbits;
@@ -59,7 +59,7 @@ main(int argc, char *argv[])
   ff >> Name("bits") >> bits;
   ff.close();
 
-#define SCHMIDL_COX_LENGTH (48 + 176 + 69 * 14 + 100)
+#define SCHMIDL_COX_LENGTH (48 + 176 + (NFFT + NCP) * 14 + 100)
 
   // Receive side
   int n = 0;

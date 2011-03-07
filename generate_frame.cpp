@@ -52,7 +52,7 @@ main(int argc, char *argv[])
   ff.flush();
   ff.close();
   ff.open("bits.it");
-  ff << Name("bits") <<   repmat(bits, iter);
+  ff << Name("bits") << bits;
   ff.flush();
   ff.close();
 
