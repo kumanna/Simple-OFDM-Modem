@@ -80,6 +80,9 @@ main(int argc, char *argv[])
 #endif
       received_symbols.del(0, 159+16);
 
+      // Apply bonus (only new thing in the whole experiment)
+      apply_bonus(received_symbols, 30);
+
       // Frequency offset jugglery
       coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
 #if FREQ_OFFSET_ON == true

@@ -203,3 +203,16 @@ fourth_power_derotate(const cvec &symbols)
   }
   return fixed_vector;
 }
+
+void
+apply_bonus(cvec &received_syms, int bonus)
+{
+  if (NCP < bonus) {
+    cerr << "Bonus must be within cyclic prefix" << endl;
+  }
+  for (int i = 0; i < received_syms.length(); i = i + NFFT + NCP) {
+    for (int j = 0; j < bonus; ++j) {
+      received_syms[NCP - j + i] = 0.5 * (received_syms[NCP - j + i ] + received_syms[NCP - j + i + NFFT]);
+    }
+  }
+}

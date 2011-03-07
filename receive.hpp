@@ -27,4 +27,7 @@ estimate_frequency_offset(const cvec &c, int n_fft);
 
 cvec
 fourth_power_derotate(const cvec &);
+
+void
+apply_bonus(cvec &received_syms, int bonus);
 #endif
