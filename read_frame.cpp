@@ -23,7 +23,7 @@ main(int argc, char *argv[])
   QAM qam(4);
 
   OFDM ofdm(NFFT, NCP);
-  cvec modulated_symbols, received_symbols, transmitted_symbols, received_symbols_equalized;
+  cvec modulated_symbols, received_symbols, transmitted_symbols, received_symbols_equalized, received_symbols_full;
 
   cvec estimation_sequence_symbol_bpsk = generate_special_estimation_sequence();
   cvec estimation_sequence_symbol = ofdm.modulate(estimation_sequence_symbol_bpsk);
@@ -53,51 +53,62 @@ main(int argc, char *argv[])
 
   it_file ff;
   ff.open("receive-data.it");
-  ff >> Name("data") >> received_symbols;
+  ff >> Name("data") >> received_symbols_full;
   ff.close();
   ff.open("bits.it");
   ff >> Name("bits") >> bits;
   ff.close();
 
+#define SCHMIDL_COX_LENGTH (48 + 176 + 69 * 14 + 100)
+
   // Receive side
-  spc_timing_freq_recovery_wrap(received_symbols, received_symbols.length(), PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
-  if (pd) { // If packet detected
-    //    received_symbols = received_symbols.left(packet_length);
-    received_symbols.del(0, pos - 2 + NREPS_PREAMBLE * PREAMBLE_LEN);
-    received_symbols = received_symbols.left(packet_length - NREPS_PREAMBLE * PREAMBLE_LEN);
+  int n = 0;
+  while (received_symbols_full.length() > SCHMIDL_COX_LENGTH) {
+    spc_timing_freq_recovery_wrap(received_symbols_full.left(SCHMIDL_COX_LENGTH), SCHMIDL_COX_LENGTH, PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
+    if (pd) { // If packet detected
+      received_symbols = received_symbols_full.mid(pos - 1, SCHMIDL_COX_LENGTH);
+      received_symbols_full.del(0, pos + SCHMIDL_COX_LENGTH - 1);
+      received_symbols.del(0, NREPS_PREAMBLE * PREAMBLE_LEN - 1);
+      received_symbols = received_symbols.left(packet_length - NREPS_PREAMBLE * PREAMBLE_LEN);
 
-    // Giannakis frequency offset estimation
-    cfo_hat_giannakis = estimate_frequency_offset(received_symbols.mid(16, 144), 1024);
+      // Giannakis frequency offset estimation
+      cfo_hat_giannakis = estimate_frequency_offset(received_symbols.mid(16, 144), 1024);
 #if FREQ_OFFSET_ON == true
-    introduce_frequency_offset(received_symbols, - 2 * M_PI * cfo_hat_giannakis);
+      introduce_frequency_offset(received_symbols, - 2 * M_PI * cfo_hat_giannakis);
 #endif
-    received_symbols.del(0, 159+16);
+      received_symbols.del(0, 159+16);
 
-    // Frequency offset jugglery
-    coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
+      // Frequency offset jugglery
+      coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
 #if FREQ_OFFSET_ON == true
-    introduce_frequency_offset(received_symbols,-2*M_PI* coarse_f/NFFT);
+      introduce_frequency_offset(received_symbols,-2*M_PI* coarse_f/NFFT);
 #endif
-    received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
-    channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
+      received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
+      channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
 
-    for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
-      extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
-      symbols = concat(symbols, symbols_n);
-    }
-    symbols = fourth_power_derotate(symbols);
-    if (!use_ldpc) {
-      recv_bits = qam.demodulate_bits(symbols);
+      for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
+	extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
+	symbols = concat(symbols, symbols_n);
+      }
+      symbols = fourth_power_derotate(symbols);
+      if (!use_ldpc) {
+	recv_bits = qam.demodulate_bits(symbols);
+      }
+      else {
+	softbits = qam.demodulate_soft_bits(symbols, 1.0 / snr / 2.0 / C.get_rate(), LOGMAP);
+	C.bp_decode(C.get_llrcalc().to_qllr(softbits.left(encoded_bits.length())), llr);
+	recv_bits = llr < 0;
+      }
+      berc.count(bits, recv_bits.left(bits.length()));
+      // blerc.count(bits, recv_bits.left(bits.length()));
+      n_successful_detects++;
+      cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << n_successful_detects << endl;
     }
     else {
-      softbits = qam.demodulate_soft_bits(symbols, 1.0 / snr / 2.0 / C.get_rate(), LOGMAP);
-      C.bp_decode(C.get_llrcalc().to_qllr(softbits.left(encoded_bits.length())), llr);
-      recv_bits = llr < 0;
+      received_symbols_full.del(0, 1);
     }
-    berc.count(bits, recv_bits.left(bits.length()));
-    // blerc.count(bits, recv_bits.left(bits.length()));
   }
-  cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << endl;
+  cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << n_successful_detects << endl;
   //  cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << blerc.get_errorrate() << "\t" << n_successful_detects << "\t" << iter << endl;
   return 0;
 }
