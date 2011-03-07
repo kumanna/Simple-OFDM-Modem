@@ -60,7 +60,7 @@ main(int argc, char *argv[])
   ff.open("bits.it");
   ff >> Name("bits") >> bits;
   ff.close();
-
+  bool pos_100 = false;
 #define SCHMIDL_COX_LENGTH (48 + 176 + (NFFT + NCP) * 14 + 100)
 
   // Receive side
@@ -69,7 +69,10 @@ main(int argc, char *argv[])
   while (received_symbols_full.length() > SCHMIDL_COX_LENGTH) {
     spc_timing_freq_recovery_wrap(received_symbols_full.left(SCHMIDL_COX_LENGTH), SCHMIDL_COX_LENGTH, PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
     if (pd) { // If packet detected
-      received_symbols = received_symbols_full.mid(pos - 2, SCHMIDL_COX_LENGTH);
+      //      cout << "Position: " << pos << endl;
+      pos = pos_100 ? 100 : pos;
+      pos_100 = (pos == 100);
+      received_symbols = received_symbols_full.mid(pos - 1, SCHMIDL_COX_LENGTH);
       received_symbols_full.del(0, pos + SCHMIDL_COX_LENGTH - 1);
       received_symbols.del(0, NREPS_PREAMBLE * PREAMBLE_LEN - 1);
       received_symbols = received_symbols.left(packet_length - NREPS_PREAMBLE * PREAMBLE_LEN);
