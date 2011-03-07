@@ -86,11 +86,13 @@ main(int argc, char *argv[])
       received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
       channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
 
+      symbols = "";
       for (int n = 0; n < received_symbols_equalized.length() / NFFT; ++n) {
 	extract_ofdm_symbol(received_symbols_equalized.mid(n * NFFT, NFFT), pilots, symbols_n);
 	symbols = concat(symbols, symbols_n);
       }
       symbols = fourth_power_derotate(symbols);
+      recv_bits = "";
       if (!use_ldpc) {
 	recv_bits = qam.demodulate_bits(symbols);
       }
