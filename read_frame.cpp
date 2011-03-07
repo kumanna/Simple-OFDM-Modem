@@ -62,7 +62,8 @@ main(int argc, char *argv[])
 #define SCHMIDL_COX_LENGTH (48 + 176 + (NFFT + NCP) * 14 + 100)
 
   // Receive side
-  int n = 0;
+  int ldpc_n = C.get_nvar();
+  int ldpc_k = C.get_nvar() - C.get_ncheck();
   while (received_symbols_full.length() > SCHMIDL_COX_LENGTH) {
     spc_timing_freq_recovery_wrap(received_symbols_full.left(SCHMIDL_COX_LENGTH), SCHMIDL_COX_LENGTH, PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
     if (pd) { // If packet detected
@@ -98,8 +99,10 @@ main(int argc, char *argv[])
       }
       else {
 	softbits = qam.demodulate_soft_bits(symbols, 1.0 / snr / 2.0 / C.get_rate(), LOGMAP);
-	C.bp_decode(C.get_llrcalc().to_qllr(softbits.left(encoded_bits.length())), llr);
-	recv_bits = llr < 0;
+	for (int k = 0; k < int(softbits.length() / ldpc_n); ++k) {
+	  C.bp_decode(C.get_llrcalc().to_qllr(softbits.mid(k * ldpc_n, ldpc_n)), llr);
+	  recv_bits = concat(recv_bits, (llr < 0).left(ldpc_k));
+	}
       }
       berc.count(bits, recv_bits.left(bits.length()));
       // blerc.count(bits, recv_bits.left(bits.length()));

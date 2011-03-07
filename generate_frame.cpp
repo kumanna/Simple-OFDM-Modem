@@ -35,16 +35,28 @@ main(int argc, char *argv[])
   C.set_exit_conditions(250);
 
   // Transmit side
-  encoded_bits = zeros_b(C.get_nvar());
+  int n = C.get_nvar();
+  int k = C.get_nvar() - C.get_ncheck();
+  encoded_bits = "";
   if (!irregular) {
-    bits = use_ldpc ? randb(C.get_nvar() - C.get_ncheck()) : randb(NBITS);
-    encoded_bits = use_ldpc ? C.encode(bits) : bits;
+    bits = use_ldpc ? randb((C.get_nvar() - C.get_ncheck()) * int(NBITS / n)) : randb(NBITS);
+    if (use_ldpc) {
+      for (int m = 0; m < int(NBITS / n); ++m) {
+	encoded_bits = concat(encoded_bits, C.encode(bits.mid(m * k, k)));
+      }
+    }
+    else {
+      encoded_bits = bits;
+    }
   }
   else if (use_ldpc) {
     bits = zeros_b(C.get_nvar() - C.get_ncheck());
   }
   fill_bits_into_ofdm_symbols(encoded_bits, qam, ofdm, estimation_sequence_symbol, &packet_length, modulated_symbols);
   
+  cout << "Modulated length (packet): " << modulated_symbols.length() << endl;
+  cout << "Data bits: " << bits.length() << endl;
+  cout << "Encoded bits: " << encoded_bits.length() << endl;
   modulated_symbols = concat(modulated_symbols, zeros_c(200));
   it_file ff;
   ff.open("transmit-data.it");
