@@ -69,7 +69,7 @@ main(int argc, char *argv[])
   while (received_symbols_full.length() > SCHMIDL_COX_LENGTH) {
     spc_timing_freq_recovery_wrap(received_symbols_full.left(SCHMIDL_COX_LENGTH), SCHMIDL_COX_LENGTH, PREAMBLE_LEN, NREPS_PREAMBLE, 0.1, &pos, &cfo_hat,  &pd);
     if (pd) { // If packet detected
-      received_symbols = received_symbols_full.mid(pos - 1, SCHMIDL_COX_LENGTH);
+      received_symbols = received_symbols_full.mid(pos - 2, SCHMIDL_COX_LENGTH);
       received_symbols_full.del(0, pos + SCHMIDL_COX_LENGTH - 1);
       received_symbols.del(0, NREPS_PREAMBLE * PREAMBLE_LEN - 1);
       received_symbols = received_symbols.left(packet_length - NREPS_PREAMBLE * PREAMBLE_LEN);
@@ -81,15 +81,16 @@ main(int argc, char *argv[])
 #endif
       received_symbols.del(0, 159+16);
 
-      // Apply bonus (only new thing in the whole experiment)
-      apply_bonus(received_symbols, bonus);
-
       // Frequency offset jugglery
       coarse_f = double(channel_coarse_frequency_estimate(ofdm, received_symbols.left(NREP_ESTIMATION_SYMBOL * (NFFT + NCP)), estimation_sequence_symbol_bpsk, channel_estimate_subcarriers));
 #if FREQ_OFFSET_ON == true
       introduce_frequency_offset(received_symbols,-2*M_PI* coarse_f/NFFT);
 #endif
       received_symbols.del(0, NREP_ESTIMATION_SYMBOL * (NFFT + NCP) - 1);
+
+      // Apply bonus (only new thing in the whole experiment)
+      apply_bonus(received_symbols, bonus);
+
       channel_equalize_and_demodulate(ofdm, channel_estimate_subcarriers, received_symbols, received_symbols_equalized);
 
       symbols = "";
