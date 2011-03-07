@@ -30,6 +30,7 @@ main(int argc, char *argv[])
   cvec channel_estimate_subcarriers;
 
   BERC berc;
+  BERC berc_individual;
   //  BLERC blerc;
 
   // Transmit side
@@ -105,9 +106,11 @@ main(int argc, char *argv[])
 	}
       }
       berc.count(bits, recv_bits.left(bits.length()));
+      berc_individual.clear();
+      berc_individual.count(bits, recv_bits.left(bits.length()));
       // blerc.count(bits, recv_bits.left(bits.length()));
       n_successful_detects++;
-      cout << snr_dB << "\t" << berc.get_errorrate() << "\t" << n_successful_detects << endl;
+      cout << snr_dB << "\t" << berc_individual.get_errorrate() << "\t" << n_successful_detects << endl;
     }
     else {
       received_symbols_full.del(0, 1);
