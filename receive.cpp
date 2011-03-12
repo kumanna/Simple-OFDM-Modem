@@ -30,7 +30,7 @@ coarse_frequency_offset_estimate(const cvec &single_ofdm_symbol, const cvec &pil
   for (int i = -MAX_ROTATIONS; i < MAX_ROTATIONS + 1; ++i) {
     offset_vec = correlation_locations + i;
     for (int j = 0; j < pilots_freq_ref.length(); ++j) {
-      offset_vec[j] = (offset_vec[j] < 0) ? offset_vec[j] + NFFT : ((offset_vec[j] > NFFT) ? offset_vec[j] - NFFT : offset_vec[j]);
+      offset_vec[j] = (offset_vec[j] < 0) ? offset_vec[j] + NFFT : ((offset_vec[j] >= NFFT) ? offset_vec[j] - NFFT : offset_vec[j]);
     }
     rotated_pilots = single_ofdm_symbol(offset_vec);
     energy = sum(sqr(rotated_pilots));
